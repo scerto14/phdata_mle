@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: housing-price-api-service
+spec:
+  selector:
+    app: housing-price-api
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: housing-price-api-deployment
+  labels:
+    app: housing-price-api
+spec:
+  replicas: 2  
+  selector:
+    matchLabels:
+      app: housing-price-api
+  template:
+    metadata:
+      labels:
+        app: housing-price-api
+    spec:
+      containers:
+      - name: housing-price-api
+        image: housing-price-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "200m"  
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        volumeMounts:
+        - name: model-data
+          mountPath: /app/model
+        - name: data
+          mountPath: /app/data
+        env:
+        - name: REDIS_HOST
+          value: "redis-service"
+      volumes:
+      - name: model-data
+        hostPath:
+          path: /app/model
+          type: Directory
+      - name: data
+        hostPath:
+          path: /app/data
+          type: Directory

@@ -1,0 +1,32 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"  
+    volumes:
+      - redis-data:/data  
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  
+    volumes:
+      - ./model:/app/model  
+      - ./data:/app/data    
+    environment:
+      - REDIS_HOST=redis  
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:

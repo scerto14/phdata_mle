@@ -1,0 +1,17 @@
+FROM continuumio/miniconda3:latest
+
+WORKDIR /app
+
+COPY conda_environment.yml .
+COPY app.py .
+COPY model/ ./model/
+COPY data/ ./data/
+
+RUN conda env create -f conda_environment.yml
+SHELL ["conda", "run", "-n", "housing", "/bin/bash", "-c"]
+
+RUN conda run -n housing pip install fastapi uvicorn typing gunicorn redis
+
+EXPOSE 8000
+
+CMD ["conda", "run", "-n", "housing", "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
